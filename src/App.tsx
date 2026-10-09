@@ -23,6 +23,8 @@ import { AdminHub } from './components/AdminHub';
 import { ResponsesView } from './components/ResponsesView';
 import { ConfirmationModal } from './components/ConfirmationModal';
 import { SuccessModal } from './components/SuccessModal';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
+import { TermsOfService } from './components/TermsOfService';
 import { CheckCircle2, AlertCircle, Info, ExternalLink } from 'lucide-react';
 
 const SEED_RESPONSES: SurveyResponse[] = [
@@ -77,7 +79,33 @@ const SEED_RESPONSES: SurveyResponse[] = [
 ];
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'survey' | 'admin' | 'responses'>('survey');
+  const [activeTab, setActiveTab] = useState<'survey' | 'admin' | 'responses' | 'privacy' | 'terms'>(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      if (path === '/privacy' || path.startsWith('/privacy')) return 'privacy';
+      if (path === '/terms' || path.startsWith('/terms')) return 'terms';
+    }
+    return 'survey';
+  });
+
+  const navigateTab = (tab: 'survey' | 'admin' | 'responses' | 'privacy' | 'terms') => {
+    setActiveTab(tab);
+    if (typeof window !== 'undefined') {
+      const newPath = tab === 'privacy' ? '/privacy' : tab === 'terms' ? '/terms' : '/';
+      window.history.pushState(null, '', newPath);
+    }
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname.toLowerCase();
+      if (path === '/privacy' || path.startsWith('/privacy')) setActiveTab('privacy');
+      else if (path === '/terms' || path.startsWith('/terms')) setActiveTab('terms');
+      else setActiveTab('survey');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -611,7 +639,7 @@ export default function App() {
       {/* Top Navigation */}
       <Navbar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={navigateTab}
         user={user}
         isAuthenticated={!!user}
         isAuthenticating={isAuthenticating}
@@ -704,6 +732,14 @@ export default function App() {
             isProcessingAction={isProcessingAction}
           />
         )}
+
+        {activeTab === 'privacy' && (
+          <PrivacyPolicy onBack={() => navigateTab('survey')} />
+        )}
+
+        {activeTab === 'terms' && (
+          <TermsOfService onBack={() => navigateTab('survey')} />
+        )}
       </main>
 
       {/* Footer */}
@@ -714,10 +750,24 @@ export default function App() {
             <span>•</span>
             <span>Problem Discovery & Feature Suggestions</span>
           </div>
-          <div className="flex items-center gap-4 text-gray-500">
-            <span>Automated delivery to <strong className="text-gray-700">{config.targetEmail}</strong></span>
+          <div className="flex items-center gap-4 text-gray-500 flex-wrap">
+            <button
+              type="button"
+              onClick={() => navigateTab('privacy')}
+              className="text-blue-600 hover:underline cursor-pointer"
+            >
+              Privacy Policy
+            </button>
             <span>•</span>
-            <span>Powered by Google Workspace APIs</span>
+            <button
+              type="button"
+              onClick={() => navigateTab('terms')}
+              className="text-blue-600 hover:underline cursor-pointer"
+            >
+              Terms of Service
+            </button>
+            <span>•</span>
+            <span>Automated delivery to <strong className="text-gray-700">{config.targetEmail}</strong></span>
           </div>
         </div>
       </footer>

@@ -12,8 +12,8 @@ import type { User } from 'firebase/auth';
 import { GoogleSignInButton } from './GoogleSignInButton';
 
 interface Props {
-  activeTab: 'survey' | 'admin' | 'responses';
-  setActiveTab: (tab: 'survey' | 'admin' | 'responses') => void;
+  activeTab: 'survey' | 'admin' | 'responses' | 'privacy' | 'terms';
+  setActiveTab: (tab: 'survey' | 'admin' | 'responses' | 'privacy' | 'terms') => void;
   user: User | null;
   isAuthenticated: boolean;
   isAuthenticating: boolean;
